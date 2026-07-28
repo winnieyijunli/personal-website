@@ -1,0 +1,1220 @@
+@import "tailwindcss";
+
+/* Tailwind v4 theme aliasing: point Tailwind's utility tokens at the same
+   CSS custom properties the rest of this file already uses, so `bg-bg`,
+   `text-ink`, `text-accent` etc. are available for new (React/Step-2) work
+   without redefining any colour value twice. */
+@theme {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-dark-bg: var(--dark-bg);
+  --color-dark-bg-2: var(--dark-bg-2);
+  --color-dark-ink: var(--dark-ink);
+  --color-dark-ink-soft: var(--dark-ink-soft);
+  --color-dark-line: var(--dark-line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+}
+
+/* ============================================================
+   Winnie Yijun Li — Portfolio
+   Design system: near-monochrome warm cream/ink + one accent
+   (accent sampled from her own "Quiet Clarity" brand mark)
+   Fluid type/spacing via clamp() — technique borrowed from
+   studio-grade sites, values are original.
+   ============================================================ */
+
+@font-face {
+  font-family: "Suisse-ish";
+  src: local("Helvetica Neue");
+}
+
+/* ================= colour system: light mode (default) =================
+   Two token families:
+   - --bg/--ink/... : used by sections marked data-theme-section="light"
+   - --dark-bg/--dark-ink/... : used by sections marked data-theme-section="dark"
+   Both families are mode-aware (see the [data-color-mode="dark"] override
+   below) — the light/dark SECTION rhythm (hero dark, work grid light, etc.)
+   is a fixed design choice and does not change; what changes with the
+   global mode toggle is how warm/bright each family is. */
+:root{
+  color-scheme: light;
+
+  /* ---- palette: near-monochrome + one accent ---- */
+  --bg:        #f7f3ea;   /* warm ivory/paper — never pure white */
+  --bg-2:      #efe9d8;
+  --ink:       #1c1712;
+  --ink-soft:  #5c5544;
+  --ink-faint: #756c58;
+  --line:      rgba(28,23,18,0.12);
+  --line-strong: rgba(28,23,18,0.22);
+
+  --dark-bg:   #17130f;   /* warm near-black — never blue-black */
+  --dark-bg-2: #1f1a14;
+  --dark-ink:  #f7f3ea;
+  --dark-ink-soft: #bdb29c;
+  --dark-line: rgba(247,243,234,0.14);
+
+  --accent:    #e14a1f;   /* her real brand red-orange — same in both modes */
+  --accent-ink:#fff7f0;
+
+  /* ---- fluid type scale ---- */
+  --fs-display: clamp(2.75rem, 1.9rem + 4.2vw, 7rem);
+  --fs-h1:      clamp(2rem, 1.5rem + 2.4vw, 4rem);
+  --fs-h2:      clamp(1.5rem, 1.2rem + 1.4vw, 2.5rem);
+  --fs-h3:      clamp(1.15rem, 1rem + 0.7vw, 1.5rem);
+  --fs-body-lg: clamp(1.05rem, 0.98rem + 0.35vw, 1.3rem);
+  --fs-body:    clamp(0.95rem, 0.9rem + 0.15vw, 1.05rem);
+  --fs-small:   clamp(0.8rem, 0.78rem + 0.1vw, 0.9rem);
+  --fs-micro:   0.72rem;
+
+  /* ---- fluid spacing scale ---- */
+  --sp-1: clamp(0.5rem, 0.45rem + 0.2vw, 0.75rem);
+  --sp-2: clamp(0.9rem, 0.8rem + 0.4vw, 1.25rem);
+  --sp-3: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
+  --sp-4: clamp(2rem, 1.6rem + 1.6vw, 3rem);
+  --sp-5: clamp(3rem, 2.2rem + 3vw, 5rem);
+  --sp-6: clamp(4rem, 2.8rem + 4.5vw, 7.5rem);
+  --sp-page: clamp(5rem, 3rem + 8vw, 10rem);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --container: 1360px;
+  --edge: clamp(1.25rem, 1rem + 2vw, 3rem);
+}
+
+/* ================= colour system: dark mode override =================
+   Same token names, warmer/darker values — every component already reads
+   these vars, so nothing outside this block needs to change. */
+:root[data-color-mode="dark"]{
+  color-scheme: dark;
+
+  --bg:        #211c16;   /* warm dark brown — never blue-black */
+  --bg-2:      #2a231b;
+  --ink:       #f2ede1;
+  --ink-soft:  #c9bfa9;
+  --ink-faint: #a89d87;
+  --line:      rgba(242,237,225,0.12);
+  --line-strong: rgba(242,237,225,0.22);
+
+  --dark-bg:   #0d0b08;   /* deeper still, for the already-dark sections */
+  --dark-bg-2: #141110;
+  --dark-ink:  #f2ede1;
+  --dark-ink-soft: #b3a891;
+  --dark-line: rgba(242,237,225,0.10);
+}
+
+*, *::before, *::after{ box-sizing:border-box; }
+html{ background:var(--bg); }
+
+
+/* ================= film grain overlay ================= */
+/* Stepped (not eased) jitter — technique lifted from the teardown's
+   .g_grain_overlay: a full-viewport noise layer that "flickers" between
+   a handful of positions instead of smoothly panning. */
+.grain-overlay{
+  position:fixed; inset:-10%;
+  z-index:9000;
+  pointer-events:none;
+  opacity:0.035;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain-jitter 0.5s steps(6) infinite;
+}
+@keyframes grain-jitter{
+  0%,100%{ transform:translate(0,0); }
+  17%{ transform:translate(-4%,-8%); }
+  33%{ transform:translate(3%,-12%); }
+  50%{ transform:translate(9%,7%); }
+  67%{ transform:translate(7%,3%); }
+  83%{ transform:translate(-2%,5%); }
+}
+@media (prefers-reduced-motion:reduce){
+  .grain-overlay{ animation:none; }
+}
+html.lenis, html.lenis body{ height:auto; }
+.lenis.lenis-smooth{ scroll-behavior:auto !important; }
+.lenis.lenis-stopped{ overflow:hidden; }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family: "Inter", "Suisse-ish", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  font-size: var(--fs-body);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+img{ max-width:100%; display:block; }
+a{ color:inherit; text-decoration:none; }
+button{ font:inherit; color:inherit; background:none; border:none; padding:0; cursor:pointer; }
+ul{ margin:0; padding:0; list-style:none; }
+h1,h2,h3,h4,p{ margin:0; }
+
+.mono{
+  font-family: ui-monospace, "SF Mono", "IBM Plex Mono", Menlo, monospace;
+  letter-spacing:0.02em;
+}
+
+.u-sr-only{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
+
+.wrap{
+  max-width:var(--container);
+  margin-inline:auto;
+  padding-inline:var(--edge);
+}
+
+/* ================= split-line reveal ================= */
+.split-line{ overflow:hidden; }
+.split-line > span{
+  display:inline-block;
+  transform: translateY(110%);
+  will-change: transform;
+}
+[data-reveal] .split-line > span{
+  transition: transform 0.9s var(--ease-out);
+}
+
+[data-fade]{
+  opacity:0;
+  transform: translateY(18px);
+  transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
+}
+[data-fade].is-visible{
+  opacity:1;
+  transform: translateY(0);
+}
+
+/* ================= custom cursor ================= */
+/* Second layer over the native cursor (never replaces it — no
+   cursor:none anywhere). Default: a small solid accent-orange circle,
+   plain normal blend. On hover over content (see Cursor.tsx's
+   INVERT_SELECTOR), it grows slightly and switches to a solid white
+   circle under mix-blend-mode:difference — difference blend computes
+   abs(background-foreground) per channel, so a pure-white circle over
+   *any* colour underneath renders as that colour's true photographic
+   negative. This is what makes the underlying text/image itself look
+   inverted through the cursor's area, not just the cursor changing
+   colour. */
+.cursor-dot{
+  position:fixed;
+  top:0; left:0;
+  width:10px; height:10px;
+  border-radius:50%;
+  background:var(--accent);
+  pointer-events:none;
+  z-index:9999;
+  opacity:0;
+  transition: opacity 0.3s ease, width 0.35s var(--ease-out), height 0.35s var(--ease-out), background-color 0.3s ease;
+  will-change:transform;
+}
+.cursor-dot.is-visible{ opacity:1; }
+.cursor-dot.is-inverting{
+  width:32px; height:32px;
+  background:#fff;
+  mix-blend-mode:difference;
+}
+@media (hover:none), (pointer:coarse){ .cursor-dot{ display:none; } }
+
+/* ================= navbar ================= */
+.navbar{
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  mix-blend-mode:normal;
+  transition: color .3s ease;
+}
+.navbar[data-theme="dark"]{ color:var(--dark-ink); }
+.navbar[data-theme="light"]{ color:var(--ink); }
+
+.navbar-row{
+  padding: var(--sp-2) var(--edge);
+  display:flex; align-items:center; justify-content:space-between;
+  gap:var(--sp-3);
+}
+
+.nav-mark{
+  font-size:var(--fs-h3);
+  font-weight:600;
+  letter-spacing:-0.01em;
+  flex:none;
+}
+.nav-links{ display:flex; gap:var(--sp-4); align-items:center; }
+.nav-links a, .nav-links button{
+  font-size:var(--fs-small);
+  position:relative;
+  padding-bottom:2px;
+}
+.nav-links a::after, .nav-links button::after{
+  content:"";
+  position:absolute; left:0; bottom:0;
+  width:100%; height:1px;
+  background:currentColor;
+  transform:scaleX(0); transform-origin:right;
+  transition:transform .5s var(--ease-out);
+}
+.nav-links a:hover::after, .nav-links button:hover::after{ transform:scaleX(1); transform-origin:left; }
+.nav-cta{
+  border:1px solid currentColor;
+  border-radius:999px;
+  padding:0.55em 1.2em;
+  font-size:var(--fs-small);
+  display:inline-flex; align-items:center; gap:0.5em;
+  flex:none;
+  white-space:nowrap;
+}
+
+/* ---- compact mobile nav: hamburger + accordion-style drop panel ----
+   Below 760px the full link row and the "Say hello" pill both disappear
+   from the compact bar (this is what used to just vanish with no
+   replacement) and move into nav-menu-panel instead, reached via the
+   hamburger button. Same grid-template-rows reveal technique as the FAQ
+   accordion, for a consistent feel and no JS height measuring. */
+.nav-menu-btn{
+  display:none;
+  flex:none;
+  width:2.2em; height:2.2em;
+  align-items:center; justify-content:center;
+  flex-direction:column;
+  gap:0.32em;
+}
+.nav-menu-btn-bar{
+  display:block;
+  width:1.1em; height:1.5px;
+  background:currentColor;
+  transition:transform .35s var(--ease-out), opacity .2s ease;
+}
+.navbar[data-menu-open="true"] .nav-menu-btn-bar:first-child{
+  transform:translateY(3.5px) rotate(45deg);
+}
+.navbar[data-menu-open="true"] .nav-menu-btn-bar:last-child{
+  transform:translateY(-3.5px) rotate(-45deg);
+}
+
+/* outer: owns the 0fr/1fr collapse; a single child (.nav-menu-panel-inner)
+   sizes to that one row, same pattern as the FAQ accordion */
+.nav-menu-panel{
+  display:grid;
+  grid-template-rows:0fr;
+  transition:grid-template-rows .5s var(--ease-inout);
+  background:var(--bg);
+  border-top:1px solid var(--line);
+}
+.navbar[data-theme="dark"] .nav-menu-panel{ background:var(--dark-bg); border-color:var(--dark-line); }
+.navbar[data-menu-open="true"] .nav-menu-panel{ grid-template-rows:1fr; }
+
+.nav-menu-panel-inner{
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  padding: 0 var(--edge);
+}
+.nav-menu-panel-inner a,
+.nav-menu-panel-inner button{
+  padding: var(--sp-3) 0;
+  font-size:var(--fs-body-lg);
+  text-align:left;
+  border-bottom:1px solid var(--line);
+}
+.navbar[data-theme="dark"] .nav-menu-panel-inner a,
+.navbar[data-theme="dark"] .nav-menu-panel-inner button{
+  border-color:var(--dark-line);
+}
+.nav-menu-panel-inner > *:last-child{ border-bottom:none; }
+
+@media (max-width:760px){
+  .nav-links, .navbar-row .nav-cta{ display:none; }
+  .nav-menu-btn{ display:flex; }
+}
+@media (min-width:761px){
+  .nav-menu-panel{ display:none; }
+}
+
+/* ---- theme toggle ---- */
+.theme-toggle{
+  width:2.2em; height:2.2em;
+  flex:none;
+  border:1px solid currentColor;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  transition:opacity .3s ease, transform .3s var(--ease-out);
+}
+.theme-toggle:hover{ opacity:0.75; }
+.theme-toggle:active{ transform:scale(0.9); }
+.theme-toggle svg{ width:1.05em; height:1.05em; }
+
+/* ================= hero ================= */
+/* Background/text now track the global colour mode via --bg/--ink (see
+   Step 1 tokens in :root) instead of being locked to the dark-section
+   family — the hero sits on warm ivory in light mode, warm near-black in
+   dark mode, per the light-mode sketch. */
+.hero{
+  position:relative;
+  min-height:100svh;
+  display:flex; flex-direction:column; justify-content:flex-end;
+  background:var(--bg);
+  color:var(--ink);
+  /* bottom padding widened now the title is the section's only content —
+     without the eyebrow/sub-paragraph/scroll-hint below it, the old
+     smaller gap read as the title crowding the edge rather than a
+     deliberate, minimal composition. */
+  padding: calc(var(--sp-page) + var(--sp-3)) 0 var(--sp-6);
+  /* deliberately no overflow:hidden here — the orange field's scroll
+     S-path carries it down past this section's own box into the next
+     section on purpose (see HeroField.tsx); clipping it here would cut
+     that motion off exactly at this boundary. Horizontal safety net is
+     body{overflow-x:hidden} (index.css), so the exit-left motion still
+     can't grow the page's scrollable width. */
+}
+.hero-inner{
+  position:relative;
+  z-index:2;
+}
+.hero-title{
+  font-size:var(--fs-display);
+  line-height:0.98;
+  font-weight:600;
+  letter-spacing:-0.02em;
+  /* widened from 16ch: the script "humanity." treatment below renders
+     noticeably wider than the plain italic it replaced, and 16ch was
+     forcing "designed for humanity." to wrap onto an extra line it
+     never needed before, which pushed the title's total height past
+     the hero's own bottom edge. */
+  max-width:20ch;
+  /* the script span below is taller than this line-height accounts for
+     on its own — this absorbs its descenders/flourishes so they aren't
+     clipped by .hero's overflow:hidden. */
+  padding-bottom:0.24em;
+}
+/* "humanity." only — a restrained calligraphic script standing in
+   contrast against the bold sans above it. Sized up relative to the
+   surrounding text (script strokes read thinner than sans at the same
+   nominal size) and given its own line-height so its ascenders/swashes
+   aren't clipped by the sans's much tighter display line-height. */
+.hero-title-script{
+  font-family: "Pinyon Script", cursive;
+  font-weight: 400;
+  font-style: normal;
+  color: var(--accent);
+  font-size: 1.3em;
+  line-height: 1;
+  display: inline-block;
+}
+
+/* ---- hero field: orange-to-amber frosted gradient ----
+   Two nested layers (see HeroField.tsx) — this file only styles the
+   paint/size/blend; all motion is GSAP transforms applied to these same
+   elements, composed via xPercent/yPercent + x/y/scaleY so nothing here
+   needs to (or should) set its own `transform`.
+     .hero-field-motion (outer) — the one lateral position layer: idle
+       drift, cursor bias, and the scroll S-path all resolve to a single
+       x/y written here, so there's exactly one "where is it" to reason
+       about instead of several fighting layers.
+     .hero-field         (inner) — the actual gradient paint; scaleY + y,
+       scroll-scrubbed for the "pulled down" trail, independent of the
+       lateral motion above. */
+.hero-field-motion{
+  position:absolute; inset:0;
+  z-index:0;
+  pointer-events:none;
+}
+.hero-field{
+  position:absolute;
+  top:0; left:58%;
+  width:min(64vw, 900px);
+  height:min(58vh, 680px);
+  border-radius:50%;
+  background: radial-gradient(closest-side at 50% 50%,
+    rgba(214,86,34,0.55) 0%,
+    rgba(224,118,48,0.30) 32%,
+    rgba(238,162,88,0.12) 58%,
+    rgba(238,162,88,0) 78%);
+  filter: blur(70px);
+  mix-blend-mode: multiply;
+}
+:root[data-color-mode="dark"] .hero-field{
+  background: radial-gradient(closest-side at 50% 50%,
+    rgba(214,104,48,0.40) 0%,
+    rgba(196,90,42,0.24) 34%,
+    rgba(176,80,42,0.10) 60%,
+    rgba(176,80,42,0) 80%);
+  mix-blend-mode: screen;
+}
+@media (max-width:760px){
+  .hero-field{ width:min(80vw, 620px); height:min(46vh, 480px); left:62%; }
+}
+
+/* ================= stats / statement =================
+   Replaces the old dark carousel. Always the page's mode-following
+   background (--bg/--ink) — never a fixed dark panel — split 30/70 into
+   a looping stat on the left and a large letter-revealed statement on
+   the right. See StatsStatement.tsx. */
+/* background:transparent (not .section-light's own var(--bg)) so the
+   Hero's orange field — no longer clipped at .hero's own edge — shows
+   through where its scroll path carries it into this section. html's
+   own background is the same --bg colour, so nothing changes visually
+   anywhere the field isn't; tag+class selector for specificity over
+   .section-light regardless of source order. */
+section.stats-statement-section{
+  background: transparent;
+}
+.stats-statement-grid{
+  display:grid;
+  grid-template-columns: 30% 70%;
+  gap: var(--sp-5);
+  align-items:start;
+}
+
+.stats-loop{
+  position:relative;
+  /* fixed enough to hold the tallest slide without any of them causing a
+     layout jump as they cross-fade. */
+  min-height: 11rem;
+}
+.stats-loop-slide{
+  position:absolute;
+  inset:0;
+  opacity:0;
+}
+.stats-loop-num{
+  font-size:calc(var(--fs-h2) * 0.85);
+  font-weight:600;
+  letter-spacing:-0.02em;
+  white-space:nowrap;
+  margin-bottom:var(--sp-2);
+}
+.stats-loop-text{
+  max-width:26ch;
+  font-size:var(--fs-body);
+  color:var(--ink-soft);
+}
+
+.stats-reveal{
+  padding-inline-start: var(--sp-5);
+  border-inline-start: 1px solid var(--line);
+}
+.stats-reveal-text{
+  font-size:var(--fs-h2);
+  font-weight:500;
+  line-height:1.3;
+  max-width:36ch;
+}
+/* letter-by-letter, line-by-line reveal (LetterReveal.tsx) — a distinct
+   mechanism from a gradient sweep: each letter is its own span, dim and
+   near-invisible at rest, snapping to full ink colour/opacity once
+   scrolled into view, staggered via a per-letter transition-delay that
+   the component computes from actual rendered line position. */
+.reveal-letter{
+  color: var(--ink-faint);
+  opacity: 0.14;
+  transition: opacity 0.4s ease, color 0.4s ease;
+}
+.reveal-letter.is-lit{
+  color: var(--ink);
+  opacity: 1;
+}
+
+@media (max-width:860px){
+  .stats-statement-grid{ grid-template-columns:1fr; gap:var(--sp-4); }
+  .stats-loop{ min-height:9rem; }
+  .stats-reveal{
+    padding-inline-start:0;
+    border-inline-start:none;
+    padding-top:var(--sp-4);
+    border-top:1px solid var(--line);
+  }
+  .stats-reveal-text{ font-size:var(--fs-h3); }
+}
+
+/* ================= opening loop ================= */
+/* Tall on purpose — the scroll-driven zoom (OpeningLoop.tsx) needs real
+   scroll distance either side of the viewport-centred peak to read as a
+   continuous approach/recede rather than an instant snap. */
+/* transparent, same reasoning as .stats-statement-section: lets html's
+   matching --bg show through rather than painting its own opaque copy,
+   keeping this section part of the same continuous background as the
+   two before it instead of a visually separate panel. */
+section.opening-loop{ background:transparent; }
+.opening-loop{ padding: 22vh 0; }
+/* Three rows in normal document flow — line 1, image, line 2 — none of
+   which overlap, so no z-index stacking is needed between them at all. */
+.opening-loop-inner{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:var(--sp-4);
+  min-height:56vh;
+}
+
+/* Both lines share this one class for font-size/weight — deliberately
+   identical between "we design" and "to taste life, twice" (only
+   "twice" itself differs, via .hero-title-script below). Matching a
+   9-char phrase's size against a 20-char one this large means line 2
+   will wrap onto more than one row on most viewports — that's an
+   accepted consequence of the exact-size requirement, not a bug to
+   route around with a smaller clamp. */
+.opening-loop-line{
+  margin:0;
+  letter-spacing:-0.02em;
+  line-height:0.95;
+  color:var(--ink);
+  text-align:center;
+  font-size:clamp(2.8rem, 1.6rem + 8.8vw, 9.6rem); /* 20% down from clamp(3.5rem, 2rem + 11vw, 12rem) */
+  font-weight:700;
+}
+/* cancels .hero-title-script's own 1.3em bump (sized up for Hero's
+   single-word "humanity.") — here "twice" stays the same size as the
+   rest of the line, only the script face + accent colour carry over. */
+.opening-loop-line .hero-title-script{ font-size:1em; }
+.opening-loop-letter{ display:inline-block; will-change:transform,opacity; }
+
+/* the looping image — its own row, centred, fixed in place; only its
+   clip-path inset changes (the scroll-driven zoom), never its position. */
+.opening-loop-media{
+  position:relative;
+  width:min(22vw, 260px);
+  aspect-ratio:1;
+  will-change:clip-path;
+  pointer-events:none;
+  flex:none;
+}
+.opening-loop-img{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  /* contain, not cover — the source SVGs aren't perfectly square
+     (e.g. Loop-3 is ~673x631), and `cover` was cropping into their own
+     circular artwork on top of the deliberate clip-path zoom. contain
+     guarantees the full motif is always visible; none of the four
+     files paint an opaque full-canvas background, so the transparent
+     margins this can introduce don't show as visible letterboxing. */
+  object-fit:contain;
+  opacity:0;
+}
+.opening-loop-img:first-of-type{ opacity:1; }
+
+@media (max-width:768px){
+  .opening-loop{ padding: 14vh 0; }
+  .opening-loop-inner{ gap:1.5vh; }
+  .opening-loop-line{ font-size:clamp(1.76rem, 1.12rem + 7.2vw, 3.6rem); } /* 20% down from clamp(2.2rem, 1.4rem + 9vw, 4.5rem) */
+  .opening-loop-media{ width:min(40vw, 210px); }
+}
+
+/* ================= section shell ================= */
+section{ position:relative; }
+.section-dark{ background:var(--dark-bg); color:var(--dark-ink); }
+.section-light{ background:var(--bg); color:var(--ink); }
+.section-pad{ padding: var(--sp-6) 0; }
+
+.eyebrow{
+  display:flex; align-items:center; gap:0.6em;
+  font-size:var(--fs-small);
+  color:var(--ink-soft);
+  margin-bottom:var(--sp-4);
+}
+.section-dark .eyebrow{ color:var(--dark-ink-soft); }
+.eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); flex:none; }
+
+/* ================= intro / statement ================= */
+.statement{
+  font-size:var(--fs-h1);
+  font-weight:500;
+  line-height:1.18;
+  letter-spacing:-0.01em;
+  max-width:22ch;
+}
+.statement .soft{ color:var(--ink-faint); }
+.section-dark .statement .soft{ color:var(--dark-ink-soft); }
+
+/* ================= approach — pinned stacking cards ================= */
+.approach-stack{ position:relative; }
+.approach-panel{
+  position:relative;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  background:var(--dark-bg);
+  color:var(--dark-ink);
+  border-top:1px solid var(--dark-line);
+}
+/* each panel needs to visually cover the one before it as it slides over */
+.approach-panel:nth-of-type(1){ z-index:1; }
+.approach-panel:nth-of-type(2){ z-index:2; background:var(--dark-bg-2); }
+.approach-panel:nth-of-type(3){ z-index:3; background:var(--dark-bg); }
+
+.approach-panel-inner{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:var(--sp-5);
+  align-items:center;
+}
+/* ---- carousel (ApproachCarousel.tsx) ---- */
+.approach-carousel{ display:flex; flex-direction:column; gap:var(--sp-3); }
+.approach-carousel-viewport{ overflow:hidden; border-radius:0.5rem; }
+.approach-carousel-track{ display:flex; }
+.approach-carousel-slide{
+  position:relative;
+  flex:0 0 100%;
+  overflow:hidden;
+  border-radius:0.5rem;
+}
+.approach-carousel-img{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  transition: transform 0.6s var(--ease-out);
+}
+/* letterbox instead of crop/stretch — .approach-carousel-slide itself
+   has no background set, so the panel's own background shows through
+   the gutters automatically; nothing else to add here. */
+.approach-carousel-img-contain{ object-fit:contain; }
+.approach-carousel-slide:hover .approach-carousel-img{ transform:scale(1.05); }
+.approach-carousel-placeholder{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  background: linear-gradient(135deg, var(--dark-bg-2), var(--dark-bg));
+  color: var(--dark-ink-soft);
+  font-size: var(--fs-small);
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+}
+.approach-carousel-overlay{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; justify-content:flex-end;
+  padding: var(--sp-3);
+  /* darker and taller than before — three lines of caption (title,
+     subtitle, description) now sit over this, and bright source images
+     (white document mockups etc.) were washing the text out even at
+     full hover opacity. */
+  background: linear-gradient(to top, rgba(13,11,8,0.94) 0%, rgba(13,11,8,0.62) 65%, rgba(13,11,8,0) 100%);
+  opacity:0.94;
+  transition: opacity 0.4s var(--ease-out);
+}
+.approach-carousel-slide:hover .approach-carousel-overlay{ opacity:1; }
+.approach-carousel-title{
+  font-size: var(--fs-body);
+  font-weight:600;
+  color: var(--dark-ink);
+  margin:0 0 0.3em;
+  letter-spacing:-0.01em;
+  transform: translateY(6px);
+  transition: transform 0.4s var(--ease-out);
+}
+.approach-carousel-slide:hover .approach-carousel-title{ transform:translateY(0); }
+.approach-carousel-subtitle{
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.4em;
+}
+.approach-carousel-desc{
+  font-size: calc(var(--fs-small) * 0.9);
+  line-height: 1.3;
+  color: var(--dark-ink-soft);
+  max-width:42ch;
+  margin:0;
+}
+.approach-carousel-readmore{
+  display:inline-flex; align-items:center; gap:0.4em;
+  margin-top:0.5em;
+  font-size: calc(var(--fs-small) * 0.9);
+  font-weight:600;
+  color: var(--dark-ink);
+}
+.approach-carousel-readmore:hover{ color: var(--accent); }
+/* minimal caption style (collaboration panel) — title only, no room for
+   a description even if one were supplied. */
+.approach-carousel-overlay-minimal .approach-carousel-desc{ display:none; }
+.approach-carousel-overlay-minimal{ padding: var(--sp-2) var(--sp-3); }
+
+.approach-carousel-controls{
+  display:flex; align-items:center; gap:var(--sp-3);
+}
+.approach-carousel-btn{
+  width:2.2em; height:2.2em;
+  border:1px solid var(--dark-line);
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  color: var(--dark-ink);
+  flex:none;
+  transition:border-color .3s ease, opacity .3s ease, transform .3s var(--ease-out);
+}
+.approach-carousel-btn svg{ width:0.9em; height:0.9em; }
+.approach-carousel-btn:hover:not(:disabled){ border-color:var(--dark-ink); }
+.approach-carousel-btn:active:not(:disabled){ transform:scale(0.9); }
+.approach-carousel-btn:disabled{ opacity:0.3; }
+
+.approach-carousel-dots{ display:flex; gap:0.5em; }
+.approach-carousel-dot{
+  width:6px; height:6px; border-radius:50%;
+  background: var(--dark-line);
+  transition: background .3s ease, transform .3s ease;
+}
+.approach-carousel-dot.is-active{ background:var(--accent); transform:scale(1.3); }
+
+/* shifted up relative to the panel's vertical centre — the "row" (num +
+   title + body, plus the eyebrow on panel 1) reads better sitting above
+   centre than dead-centred in a full-viewport pinned panel. */
+.approach-content{
+  transform: translateY(-25%);
+}
+.approach-eyebrow{
+  color: var(--dark-ink-soft);
+  margin-bottom: var(--sp-3);
+}
+.approach-num{
+  display:block;
+  font-size:var(--fs-small);
+  color:var(--accent);
+  margin-bottom: var(--sp-2);
+}
+.approach-body h3{
+  font-size:calc(var(--fs-display) * 0.8);
+  font-weight:600;
+  letter-spacing:-0.02em;
+  line-height:1;
+  margin-bottom:0.5em;
+  max-width:14ch;
+}
+.approach-body p{
+  color:var(--dark-ink-soft);
+  max-width:48ch;
+  font-size:var(--fs-body-lg);
+}
+.approach-case-link{
+  display:inline-flex; align-items:center; gap:0.5em;
+  margin-top:var(--sp-3);
+  border:1px solid var(--dark-line);
+  border-radius:999px;
+  padding:0.55em 1.2em;
+  font-size:var(--fs-small);
+  color:var(--dark-ink);
+  transition:border-color .3s ease, color .3s ease;
+}
+.approach-case-link:hover{ border-color:var(--accent); color:var(--accent); }
+@media (max-width:640px){
+  .approach-panel-inner{ grid-template-columns:1fr; gap:var(--sp-3); }
+}
+
+/* ================= FAQ accordion (CSS grid-rows technique) ================= */
+.faq-inner{
+  display:grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap:var(--sp-5);
+  align-items:start;
+}
+.faq-head .statement{ max-width:24ch; }
+.faq-statement{ font-size:calc(var(--fs-h1) * 0.9); }
+/* "exploration" only — same restrained script treatment as the hero's
+   "humanity.", sized up relative to the surrounding sans since script
+   strokes read thinner at the same nominal size. */
+.faq-statement-script{
+  font-family:"Pinyon Script", cursive;
+  font-weight:400;
+  font-style:normal;
+  color:var(--accent);
+  font-size:1.3em;
+  line-height:1;
+  display:inline-block;
+}
+.faq-list{ border-top:1px solid var(--line); }
+.faq-item{ border-bottom:1px solid var(--line); }
+.faq-q{
+  width:100%;
+  display:flex; align-items:center; justify-content:space-between;
+  gap:var(--sp-3);
+  padding:var(--sp-3) 0;
+  text-align:left;
+  font-size:var(--fs-body-lg);
+}
+.faq-icon{
+  flex:none;
+  width:1em; height:1em;
+  position:relative;
+}
+.faq-icon::before, .faq-icon::after{
+  content:"";
+  position:absolute; top:50%; left:50%;
+  background:currentColor;
+  transform:translate(-50%,-50%);
+  transition:transform .4s var(--ease-out), opacity .4s var(--ease-out);
+}
+.faq-icon::before{ width:100%; height:1.5px; }
+.faq-icon::after{ width:1.5px; height:100%; }
+.faq-item.is-open .faq-icon::after{ opacity:0; transform:translate(-50%,-50%) rotate(90deg); }
+
+/* the actual technique: animate grid-template-rows 0fr -> 1fr instead of
+   measuring/animating height in JS — no layout thrash, no max-height hack */
+.faq-a{
+  display:grid;
+  grid-template-rows:0fr;
+  transition:grid-template-rows .55s var(--ease-inout);
+}
+.faq-a-inner{ overflow:hidden; }
+.faq-a-inner p{
+  padding-bottom:var(--sp-3);
+  color:var(--ink-soft);
+  max-width:56ch;
+  font-size:var(--fs-body);
+}
+.faq-item.is-open .faq-a{ grid-template-rows:1fr; }
+@media (max-width:760px){
+  .faq-inner{ grid-template-columns:1fr; }
+}
+
+/* ================= about — slide-over panel ================= */
+.about-overlay{
+  position:fixed; inset:0; z-index:150;
+  background:rgba(15,13,10,0.6);
+  opacity:0; visibility:hidden;
+  transition:opacity .5s var(--ease-out), visibility 0s linear .5s;
+}
+body.is-about-open .about-overlay{
+  opacity:1; visibility:visible;
+  transition:opacity .5s var(--ease-out), visibility 0s linear 0s;
+}
+
+.about-panel{
+  position:fixed; top:0; right:0; bottom:0;
+  width:min(600px, 92vw);
+  background:var(--dark-bg);
+  color:var(--dark-ink);
+  z-index:151;
+  transform:translateX(100%);
+  transition:transform .65s var(--ease-inout);
+  overflow-y:auto;
+  padding: var(--sp-4) var(--edge) var(--sp-6);
+}
+body.is-about-open .about-panel{ transform:translateX(0%); }
+body.is-about-open{ overflow:hidden; }
+
+.about-close{
+  display:inline-flex; align-items:center; gap:0.6em;
+  border:1px solid var(--dark-line);
+  border-radius:999px;
+  padding:0.5em 1em;
+  font-size:var(--fs-small);
+  margin-bottom:var(--sp-5);
+  transition:border-color .3s ease;
+}
+.about-close:hover{ border-color:var(--dark-ink); }
+
+.about-block{ margin-bottom:var(--sp-5); }
+.about-block:last-child{ margin-bottom:0; }
+
+.about-bio{
+  font-size:calc(var(--fs-h3) * 0.8);
+  font-weight:400;
+  line-height:1.45;
+  color:var(--dark-ink);
+  max-width:48ch;
+}
+.about-bio p{ margin-bottom:0.75em; }
+.about-bio p:last-child{ margin-bottom:0; }
+
+.about-picture{
+  aspect-ratio:4/5;
+  max-height:60vh;
+  border-radius:6px;
+  overflow:hidden;
+  background:var(--dark-bg-2);
+}
+.about-picture video{
+  width:100%; height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.about-practice-list{ display:flex; flex-direction:column; gap:var(--sp-4); }
+.about-practice-item h4{
+  font-size:var(--fs-body-lg);
+  font-weight:500;
+  margin-bottom:0.35em;
+}
+.about-practice-item p{
+  color:var(--dark-ink-soft);
+  font-size:var(--fs-small);
+  max-width:48ch;
+}
+
+.about-outside-list{ display:flex; flex-direction:column; gap:var(--sp-4); }
+.about-outside-item h4{
+  font-size:var(--fs-body-lg);
+  font-weight:500;
+  margin-bottom:0.35em;
+}
+.about-outside-item p{
+  color:var(--dark-ink-soft);
+  font-size:var(--fs-small);
+  max-width:48ch;
+  margin-bottom:0.5em;
+}
+.about-outside-item p:last-child{ margin-bottom:0; }
+
+.about-principles{ display:flex; flex-direction:column; gap:var(--sp-4); }
+.about-principle h4{
+  font-size:var(--fs-body-lg);
+  font-weight:500;
+  margin-bottom:0.35em;
+}
+.about-principle p{
+  color:var(--dark-ink-soft);
+  font-size:var(--fs-small);
+  max-width:48ch;
+}
+
+@media (max-width:520px){
+  .about-panel{ padding: var(--sp-3) var(--edge) var(--sp-5); }
+}
+
+/* ================= footer / contact ================= */
+/* Mode-aware now (--bg/--ink), same token family as .hero — light in
+   light mode, warm dark in dark mode, matching Hero exactly rather than
+   staying permanently dark regardless of the toggle. Consequence worth
+   knowing: .footer-curtain already used --bg (matching the section
+   above it) specifically so it would visually match the *revealed*
+   footer underneath once fully peeled in light mode — now that .footer
+   itself is also --bg, curtain and footer are the same colour in every
+   mode, so the peel becomes a much quieter, less visible transition
+   than before. Flagging in case that's not wanted. */
+.footer{
+  position:relative;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--ink);
+  padding: var(--sp-6) 0 var(--sp-3);
+}
+.footer-curtain{
+  position:absolute; inset:0;
+  z-index:5;
+  background:var(--bg); /* matches the section above — reads as "still that section" until it peels */
+  pointer-events:none;
+}
+/* ---- top: contact form (left, secondary) + statement & gradient blob
+   (right, primary) ---- */
+.footer-grid{
+  display:grid;
+  /* shifted from 0.85/1 — more visual weight to the statement+blob
+     side, less to the form, per the hierarchy rework. */
+  grid-template-columns: 0.7fr 1.3fr;
+  gap:var(--sp-6);
+  align-items:start;
+  border-bottom:1px solid var(--line);
+  padding-bottom:var(--sp-5);
+  margin-bottom:var(--sp-4);
+}
+.footer-form-col .eyebrow{ color:var(--ink-soft); margin-bottom:var(--sp-3); }
+
+.footer-form{ display:flex; flex-direction:column; gap:var(--sp-3); max-width:34rem; }
+.footer-form-field{ display:flex; flex-direction:column; gap:0.4em; }
+.footer-form-field label{
+  font-size:var(--fs-small);
+  color:var(--ink-soft);
+}
+.footer-form-field input,
+.footer-form-field textarea{
+  background:transparent;
+  border:none;
+  border-bottom:1px solid var(--line);
+  padding:0.5em 0;
+  font-family:inherit;
+  font-size:var(--fs-body);
+  color:var(--ink);
+  resize:none;
+  transition:border-color .3s ease;
+}
+.footer-form-field input:focus,
+.footer-form-field textarea:focus{
+  outline:none;
+  border-color:var(--accent);
+}
+/* deliberately quieter than a bordered pill button — this is the
+   secondary element now, a plain underlined text-action rather than a
+   competing visual focal point. */
+.footer-form-submit{
+  align-self:flex-start;
+  margin-top:var(--sp-2);
+  padding-bottom:2px;
+  border:none;
+  border-bottom:1px solid var(--line);
+  font-size:var(--fs-body);
+  color:var(--ink-soft);
+  transition:border-color .3s ease, color .3s ease;
+}
+.footer-form-submit:hover{ border-color:var(--accent); color:var(--accent); }
+
+.footer-visual-col{
+  position:relative;
+  min-height:24rem;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  /* no overflow:hidden here — the gradient blob is no longer nested
+     inside this column at all (see Footer.tsx), so there's nothing of
+     its own that needs clipping. */
+}
+.footer-statement{
+  position:relative;
+  z-index:1;
+  /* bumped up from --fs-display now that it's the clear primary
+     element with the wider column to itself. */
+  font-size:clamp(2.75rem, 1.9rem + 5vw, 7.5rem);
+  font-weight:500;
+  letter-spacing:-0.02em;
+  line-height:0.96;
+}
+.footer-contact-links{
+  position:relative;
+  z-index:1;
+  display:flex;
+  gap:var(--sp-2);
+  margin-top:var(--sp-4);
+}
+.footer-icon-link{
+  width:2.4em; height:2.4em;
+  border:1px solid var(--line);
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--ink);
+  transition:border-color .3s ease, color .3s ease, transform .3s var(--ease-out);
+}
+.footer-icon-link svg{ width:1.1em; height:1.1em; }
+.footer-icon-link:hover{ border-color:var(--accent); color:var(--accent); }
+.footer-icon-link:active{ transform:scale(0.92); }
+
+/* ---- gradient blob (FooterGradientBlob.tsx) ----
+   Independent of the Hero's own orange field/S-path — own component,
+   own ScrollTrigger, scoped only to this section's entry range. Two
+   layers (outer haze + inner core) for the "depth through overlapping
+   gradients" the design calls for. */
+.footer-blob{
+  position:absolute;
+  /* sized relative to the whole footer now (see FooterGradientBlob.tsx
+     comment) — 44% of the full section reads as a genuinely large
+     atmosphere rather than a shape confined to one column. */
+  width:44%;
+  aspect-ratio:1;
+  z-index:0;
+  pointer-events:none;
+}
+/* cursor-attraction layer (GSAP quickTo x/y, FooterGradientBlob.tsx) —
+   separate element so it composes with the scroll-driven left/top on
+   .footer-blob instead of both fighting over the same transform. */
+.footer-blob-hover{ position:absolute; inset:0; }
+.footer-blob-idle{
+  position:absolute; inset:0;
+  animation: footer-blob-idle-drift 30s ease-in-out infinite;
+}
+@keyframes footer-blob-idle-drift{
+  0%, 100%{ transform:translate(0,0) scale(1); }
+  50%{ transform:translate(3%, -3%) scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce){
+  .footer-blob-idle{ animation:none; }
+}
+/* multiply by default (light mode: darkens against the now-light
+   background, same as Hero's own field); dark mode switches to screen
+   (brightens against dark), exact same dual-mode split Hero uses —
+   screen alone would render almost invisible over a light background. */
+.footer-blob-layer{
+  position:absolute; inset:0;
+  border-radius:50%;
+  mix-blend-mode:multiply;
+}
+:root[data-color-mode="dark"] .footer-blob-layer{
+  mix-blend-mode:screen;
+}
+.footer-blob-layer-outer{
+  background: radial-gradient(closest-side at 50% 50%,
+    rgba(224,118,48,0.35) 0%,
+    rgba(214,86,34,0.16) 45%,
+    rgba(214,86,34,0) 75%);
+  filter: blur(70px);
+}
+.footer-blob-layer-inner{
+  inset:15%;
+  background: radial-gradient(closest-side at 50% 50%,
+    rgba(238,162,88,0.5) 0%,
+    rgba(224,118,48,0.2) 50%,
+    rgba(224,118,48,0) 78%);
+  filter: blur(50px);
+}
+
+@media (max-width:860px){
+  .footer-grid{ grid-template-columns:1fr; }
+  .footer-visual-col{ order:-1; min-height:18rem; }
+}
+
+/* ---- footer wordmark: ambient particle typography ----
+   Now follows the same mode-aware tokens as the rest of the footer
+   (was a fixed always-dark space before) — the particles themselves are
+   already warm amber/burnt-orange (randomParticleColor() in
+   FooterWordmark.tsx), not tied to --ink, so they stay clearly visible
+   against either a light or dark background without any change there. */
+.footer-wordmark{
+  position:relative;
+  /* full-width again (the 34rem cap made it read as too small/cramped)
+     — its own font-size/height already scale responsively off
+     container width in FooterWordmark.tsx. */
+  margin-top:var(--sp-3);
+  padding-top:var(--sp-3);
+  border-top:1px solid var(--line);
+  overflow:hidden;
+}
+.footer-wordmark canvas{
+  position:relative;
+  z-index:1;
+  display:block;
+  width:100%;
+}
+
+/* one large, extremely restrained amber blob — depth, not a repeat of
+   the hero's effect: far fainter, far slower, no blend-mode trickery. */
+.footer-wordmark-atmosphere{
+  position:absolute;
+  inset:-30%;
+  z-index:0;
+  pointer-events:none;
+  background: radial-gradient(closest-side at 50% 50%,
+    rgba(214,104,48,0.10) 0%,
+    rgba(196,90,42,0.05) 45%,
+    transparent 75%);
+  filter: blur(90px);
+  animation: footer-atmosphere-drift 38s ease-in-out infinite;
+}
+@keyframes footer-atmosphere-drift{
+  0%, 100%{ transform:translate(-4%, -2%) scale(1); }
+  50%{ transform:translate(4%, 3%) scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce){
+  .footer-wordmark-atmosphere{ animation:none; }
+}
+
+.footer-wordmark-status{
+  position:relative;
+  z-index:1;
+  display:flex;
+  justify-content:space-between;
+  margin-top:var(--sp-2);
+  font-size:var(--fs-micro);
+  color:var(--ink-soft);
+  opacity:0.65;
+}
+
+/* ================= misc ================= */
+.hr{
+  height:1px; background:var(--line); border:none; margin:0;
+}
+.section-dark .hr{ background:var(--dark-line); }

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Theme-selection order: saved preference -> system preference ->
+         local time of day. Runs synchronously before first paint so there's
+         no flash of the wrong theme; the useTheme hook picks up whatever
+         this sets on hydration. -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("theme-preference");
+          var mode;
+          if (saved === "light" || saved === "dark") {
+            mode = saved;
+          } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            mode = "dark";
+          } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+            mode = "light";
+          } else {
+            var hour = new Date().getHours();
+            mode = hour >= 6 && hour < 18 ? "light" : "dark";
+          }
+          document.documentElement.setAttribute("data-color-mode", mode);
+        } catch (e) {
+          document.documentElement.setAttribute("data-color-mode", "light");
+        }
+      })();
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: light)" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Winnie Yijun Li — Brand &amp; Communication Design</title>
+    <meta name="description" content="Selected work in brand and communication design by Winnie Yijun Li — brand systems, publication and web design for international organisations, 2024–2026." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
