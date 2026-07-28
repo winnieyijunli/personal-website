@@ -26,3 +26,10 @@ dist-ssr
 # full-size source images before the pre-launch resize pass — never
 # served, kept locally only
 originals-backup
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
