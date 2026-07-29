@@ -26,3 +26,10 @@ dist-ssr
 # full-size source images before the pre-launch resize pass — never
 # served, kept locally only
 originals-backup
+
+# one-off local build variants for the Cloudflare Pages / GitHub Pages
+# mirror deployments (different base path / OG metadata than the main
+# Workers deployment main builds) — not part of the site's source
+dist-pages
+dist-ghpages
+pages-assets
