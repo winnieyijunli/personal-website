@@ -76,8 +76,13 @@ export default function Navbar({ onOpenAbout, mode, onToggleTheme }: NavbarProps
             </svg>
           )}
         </button>
-        <a href="mailto:winnieyijunl@gmail.com" className="nav-cta">
-          Say hello →
+        <a
+          href="https://drive.google.com/file/d/1jG7NmC3lHWAtQuysw_hNQDOclS7dnRRM/view?usp=sharing"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="nav-cta"
+        >
+          Download PDF Portfolio →
         </a>
         <button
           type="button"
@@ -107,8 +112,13 @@ export default function Navbar({ onOpenAbout, mode, onToggleTheme }: NavbarProps
           <a href="#contact" onClick={closeMenu}>
             Contact
           </a>
-          <a href="mailto:winnieyijunl@gmail.com" onClick={closeMenu}>
-            Say hello →
+          <a
+            href="https://drive.google.com/file/d/1jG7NmC3lHWAtQuysw_hNQDOclS7dnRRM/view?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={closeMenu}
+          >
+            Download PDF Portfolio →
           </a>
         </nav>
       </div>
